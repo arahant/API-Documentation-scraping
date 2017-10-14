@@ -54,7 +54,10 @@ public class WebScraperJerseyGraph {
 		System.out.println("Depth "+depth+" "+url);
 		try {
 			URI uri = new URI(url);
+			//this statement ensures that the crawler doesn't digress. 
+			//Suppose there is a link to a Java package, this blocks any attempts to visit them.
 			if(uri.getAuthority().equals(authority)) {
+				//removing fragments from the url to avoid duplicate traversals and downloads
 				if(link_set.add(url.split("#")[0])) {
 					Document doc = Jsoup.connect(url).get();
 					Elements links = doc.getElementsByTag("a");
@@ -68,6 +71,7 @@ public class WebScraperJerseyGraph {
 								hyperlinks.add(baseurl+a.attr("href"));
 							}
 						}
+						//creating a Vertex instance for this page
 						Vertex node = new Vertex();
 						node.setId(++c);node.setUrl(url);node.setDomain(uri.getPath());
 						node.setHyperlinks(hyperlinks);
@@ -98,10 +102,6 @@ public class WebScraperJerseyGraph {
 		}
 		return true;
 	}
-	
-	/*private String normalize(String url) {
-		return url.split("#")[0];
-	}*/
 
 	private void downloadDocument(String url) {
 
@@ -145,6 +145,7 @@ public class WebScraperJerseyGraph {
 				String data = new String(doc.toString());
 				for(String link:hyperlinks) {
 					Vertex target = link_node_map.get(link);
+				//using Java Regexp instead of the default String.replace()function reduces complexity (tested!)
 					String oldtag = "href=\""+link+"\"";
 					String newtag = "href=\""+target.getDomain();
 					Pattern p = Pattern.compile(oldtag);
